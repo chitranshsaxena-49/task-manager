@@ -173,6 +173,13 @@ First, create the environment variables file `.env` in the client folder. The `.
 
 If a normal user tries admin login, access is blocked.
 
+## Test Login
+
+Use these admin credentials for browser/UI testing:
+
+- Email: `admin@taskmanager.local`
+- Password: `Admin@123`
+
 &nbsp;
 
 ## Railway Deployment Notes
