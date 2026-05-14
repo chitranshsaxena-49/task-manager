@@ -19,7 +19,6 @@ With the rise of remote work and dispersed teams, there is a growing need for to
 ### 
 ## **Admin Features:**
 1. **User Management:**
-    - Create admin accounts.
     - Add and manage team members.
 
 2. **Task Assignment:**
@@ -31,8 +30,9 @@ With the rise of remote work and dispersed teams, there is a growing need for to
     - Assign priority levels (high, medium, normal, low).
     - Add and manage sub-tasks.
 
-4. **Asset Management:**
-    - Upload task assets, such as images.
+4. **Access Control:**
+    - Admin login is separated from user login.
+    - Only admins can create and assign tasks.
 
 5. **User Account Control:**
     - Disable or activate user accounts.
@@ -40,7 +40,11 @@ With the rise of remote work and dispersed teams, there is a growing need for to
 
 
 ## **User Features:**
-1. **Task Interaction:**
+1. **Account Signup:**
+    - Users can sign up from the login screen.
+    - Signup creates normal user accounts only (no admin signup).
+
+2. **Task Interaction:**
     - Change task status (in progress or completed).
     - View detailed task information.
 
@@ -139,14 +143,45 @@ If configured correctly, you should see a message indicating that the server is 
 First, create the environment variables file `.env` in the client folder. The `.env` file contains the following environment variables:
 
 - VITE_APP_BASE_URL = `http://localhost:8800` #Note: Change the port 8800 to your port number.
-- VITE_APP_FIREBASE_API_KEY = `Firebase api key`
 
 ## Steps to run client
 
 1. Navigate into the client directory `cd client`.
 2. Run `npm i` or `npm install` to install the packages.
-3. Run `npm start` to run the app on `http://localhost:3000`.
+3. Run `npm run dev` to run the app on `http://localhost:3000`.
 4. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
+&nbsp;
+
+## Authentication Modes
+
+- **User Login:** for normal user accounts only.
+- **Sign Up:** creates normal user accounts only.
+- **Admin Login:** only admin accounts can log in with this mode.
+
+If a normal user tries admin login, access is blocked.
+
+&nbsp;
+
+## Railway Deployment Notes
+
+### Backend (service root: `server`)
+- Build command: `npm install`
+- Start command: `npm start`
+- Health path: `/health`
+
+Required backend variables:
+- `MONGODB_URI`
+- `JWT_SECRET`
+- `NODE_ENV=production`
+- `CORS_ORIGIN=<your frontend railway URL>`
+
+### Frontend (service root: `client`)
+- Build command: `npm install && npm run build`
+- Start command: `npm start`
+
+Required frontend variable:
+- `VITE_APP_BASE_URL=<your backend railway URL>`
 
 
 
