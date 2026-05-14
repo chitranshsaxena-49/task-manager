@@ -67,6 +67,18 @@ With the rise of remote work and dispersed teams, there is a growing need for to
     - Provide a summary of user activities.
     - Filter tasks into todo, in progress, or completed.
 
+    ## **Role-based Access**
+
+    - The application enforces role-based access using the `isAdmin` flag on user accounts.
+    - Backend enforcement:
+        - Admin-only checks are implemented in `server/middleware/authMiddleware.js` (the `isAdminRoute` middleware).
+        - Sensitive routes (task create/update/delete, team management) are protected server-side — see `server/routes/taskRoute.js` and `server/routes/userRoute.js`.
+    - Frontend enforcement:
+        - Admin-only UI elements (Create Task, user management views) are conditionally rendered using `user?.isAdmin` in the client code (for example, `client/src/pages/Tasks.jsx` and `client/src/components/Sidebar.jsx`).
+    - Note: there is also a `role` string field on users for descriptive purposes, but authorization decisions are currently based on the boolean `isAdmin` flag.
+
+    If you want finer-grained roles (e.g., manager, reviewer), we can extend the server middleware to check `role` values and update the UI accordingly.
+
 
 
 
