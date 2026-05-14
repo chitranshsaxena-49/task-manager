@@ -18,6 +18,14 @@ const allowedOrigins = process.env.CORS_ORIGIN
 
 const app = express();
 
+app.get("/", (req, res) => {
+  res.status(200).json({ status: true, message: "Task Manager API is running." });
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: true, message: "OK" });
+});
+
 app.use(
   cors({
     origin: allowedOrigins,
