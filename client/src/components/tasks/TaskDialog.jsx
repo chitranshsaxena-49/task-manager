@@ -207,9 +207,8 @@ export default function TaskDialog({ task }) {
                       <button
                         disabled={index === 0 ? false : !user.isAdmin}
                         onClick={el?.onClick}
-                        className={`${
-                          active ? "bg-blue-500 text-white" : "text-gray-900"
-                        } group flex w-full items-center rounded-md px-2 py-2 text-sm disabled:text-gray-400`}
+                        className={`${active ? "bg-blue-500 text-white" : "text-gray-900"
+                          } group flex w-full items-center rounded-md px-2 py-2 text-sm disabled:text-gray-400`}
                       >
                         {el.icon}
                         {el.label}
@@ -221,7 +220,7 @@ export default function TaskDialog({ task }) {
 
               <div className='px-1 py-1'>
                 <Menu.Item>
-                  <ChangeTaskActions id={task._id} {...task} />
+                  <ChangeTaskActions _id={task._id} stage={task.stage} />
                 </Menu.Item>
               </div>
 
@@ -231,9 +230,8 @@ export default function TaskDialog({ task }) {
                     <button
                       disabled={!user.isAdmin}
                       onClick={() => deleteClicks()}
-                      className={`${
-                        active ? "bg-red-100 text-red-900" : "text-red-900"
-                      } group flex w-full items-center rounded-md px-2 py-2 text-sm disabled:text-gray-400`}
+                      className={`${active ? "bg-red-100 text-red-900" : "text-red-900"
+                        } group flex w-full items-center rounded-md px-2 py-2 text-sm disabled:text-gray-400`}
                     >
                       <RiDeleteBin6Line
                         className='mr-2 h-5 w-5 text-red-600'

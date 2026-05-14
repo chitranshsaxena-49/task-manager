@@ -15,12 +15,21 @@ export default function UserList({ team, setTeam }) {
   };
 
   useEffect(() => {
-    if (team?.length < 1) {
-      data && setSelectedUsers([data[0]]);
-    } else {
-      setSelectedUsers(team);
+    if (!data?.length) {
+      return;
     }
-  }, [isLoading]);
+
+    if (team?.length > 0) {
+      const selectedIds = team.map((member) => member?._id || member);
+      const matchedUsers = data.filter((user) => selectedIds.includes(user._id));
+
+      setSelectedUsers(matchedUsers);
+      return;
+    }
+
+    setSelectedUsers([data[0]]);
+    setTeam([data[0]._id]);
+  }, [data, team, setTeam]);
 
   return (
     <div className=''>
@@ -54,8 +63,7 @@ export default function UserList({ team, setTeam }) {
                 <Listbox.Option
                   key={userIdx}
                   className={({ active }) =>
-                    `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                      active ? "bg-amber-100 text-amber-900" : "text-gray-900"
+                    `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? "bg-amber-100 text-amber-900" : "text-gray-900"
                     }`
                   }
                   value={user}
@@ -63,9 +71,8 @@ export default function UserList({ team, setTeam }) {
                   {({ selected }) => (
                     <>
                       <div
-                        className={`flex items-center gap-2 truncate ${
-                          selected ? "font-medium" : "font-normal"
-                        }`}
+                        className={`flex items-center gap-2 truncate ${selected ? "font-medium" : "font-normal"
+                          }`}
                       >
                         <div
                           className={

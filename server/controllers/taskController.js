@@ -3,6 +3,29 @@ import Notice from "../models/notis.js";
 import Task from "../models/taskModel.js";
 import User from "../models/userModel.js";
 
+const syncTaskTeamMembers = async (taskId, previousTeam = [], nextTeam = []) => {
+  const previousIds = previousTeam.map((member) => member?.toString?.() || member);
+  const nextIds = nextTeam.map((member) => member?.toString?.() || member);
+
+  const removedIds = previousIds.filter((id) => !nextIds.includes(id));
+  const addedIds = nextIds.filter((id) => !previousIds.includes(id));
+
+  await Promise.all([
+    addedIds.length
+      ? User.updateMany(
+        { _id: { $in: addedIds } },
+        { $addToSet: { tasks: taskId } }
+      )
+      : Promise.resolve(),
+    removedIds.length
+      ? User.updateMany(
+        { _id: { $in: removedIds } },
+        { $pull: { tasks: taskId } }
+      )
+      : Promise.resolve(),
+  ]);
+};
+
 const createTask = asyncHandler(async (req, res) => {
   try {
     const { userId } = req.user;
@@ -39,7 +62,7 @@ const createTask = asyncHandler(async (req, res) => {
       date,
       priority: priority.toLowerCase(),
       assets,
-      activities: activity,
+      activities: [activity],
       links: newLinks || [],
       description,
     });
@@ -50,17 +73,7 @@ const createTask = asyncHandler(async (req, res) => {
       task: task._id,
     });
 
-    const users = await User.find({
-      _id: team,
-    });
-
-    if (users) {
-      for (let i = 0; i < users.length; i++) {
-        const user = users[i];
-
-        await User.findByIdAndUpdate(user._id, { $push: { tasks: task._id } });
-      }
-    }
+    await syncTaskTeamMembers(task._id, [], team);
 
     res
       .status(200)
@@ -80,14 +93,13 @@ const duplicateTask = asyncHandler(async (req, res) => {
 
     //alert users of the task
     let text = "New task has been assigned to you";
-    if (team.team?.length > 1) {
+    if (task.team?.length > 1) {
       text = text + ` and ${task.team?.length - 1} others.`;
     }
 
     text =
       text +
-      ` The task priority is set a ${
-        task.priority
+      ` The task priority is set a ${task.priority
       } priority, so check and act accordingly. The task date is ${new Date(
         task.date
       ).toDateString()}. Thank you!!!`;
@@ -109,10 +121,12 @@ const duplicateTask = asyncHandler(async (req, res) => {
     newTask.links = task.links;
     newTask.priority = task.priority;
     newTask.stage = task.stage;
-    newTask.activities = activity;
+    newTask.activities = [activity];
     newTask.description = task.description;
 
     await newTask.save();
+
+    await syncTaskTeamMembers(newTask._id, [], newTask.team || []);
 
     await Notice.create({
       team: newTask.team,
@@ -135,6 +149,7 @@ const updateTask = asyncHandler(async (req, res) => {
 
   try {
     const task = await Task.findById(id);
+    const previousTeam = [...(task.team || [])];
 
     let newLinks = [];
 
@@ -153,9 +168,11 @@ const updateTask = asyncHandler(async (req, res) => {
 
     await task.save();
 
+    await syncTaskTeamMembers(task._id, previousTeam, team || []);
+
     res
       .status(200)
-      .json({ status: true, message: "Task duplicated successfully." });
+      .json({ status: true, message: "Task updated successfully." });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
@@ -381,22 +398,22 @@ const dashboardStatistics = asyncHandler(async (req, res) => {
     // Fetch all tasks from the database
     const allTasks = isAdmin
       ? await Task.find({
-          isTrashed: false,
+        isTrashed: false,
+      })
+        .populate({
+          path: "team",
+          select: "name role title email",
         })
-          .populate({
-            path: "team",
-            select: "name role title email",
-          })
-          .sort({ _id: -1 })
+        .sort({ _id: -1 })
       : await Task.find({
-          isTrashed: false,
-          team: { $all: [userId] },
+        isTrashed: false,
+        team: { $all: [userId] },
+      })
+        .populate({
+          path: "team",
+          select: "name role title email",
         })
-          .populate({
-            path: "team",
-            select: "name role title email",
-          })
-          .sort({ _id: -1 });
+        .sort({ _id: -1 });
 
     const users = await User.find({ isActive: true })
       .select("name title role isActive createdAt")
