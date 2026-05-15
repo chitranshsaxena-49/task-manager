@@ -16,6 +16,8 @@ const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim())
   : ["https://mern-task-manager-app.netlify.app", "http://localhost:3000", "http://localhost:3001"];
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const app = express();
 
 app.get("/", (req, res) => {
@@ -26,9 +28,12 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: true, message: "OK" });
 });
 
+// For production, allow cross-origin requests from the requesting origin
+// so that cookies can be set when frontend and backend share a domain
+// (Railway deployments may serve the frontend and backend from the same host).
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: isProduction ? true : allowedOrigins,
     methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   })
