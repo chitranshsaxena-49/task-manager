@@ -12,9 +12,12 @@ dotenv.config();
 dbConnection();
 
 const port = process.env.PORT || 5000;
+// Allowed origins for CORS. Prefer setting CORS_ORIGIN in the environment as a
+// comma-separated list (e.g. "https://your-frontend.app,https://other.app").
+// Keep a minimal localhost default for local development only.
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim())
-  : ["https://mern-task-manager-app.netlify.app", "http://localhost:3000", "http://localhost:3001"];
+  : ["http://localhost:3000", "http://localhost:3001"];
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -42,9 +45,18 @@ app.get("/health", (req, res) => {
 // For production, allow cross-origin requests from the requesting origin
 // so that cookies can be set when frontend and backend share a domain
 // (Railway deployments may serve the frontend and backend from the same host).
+// Configure CORS with a dynamic origin checker so we only allow configured
+// frontends. This ensures credentialed requests (cookies) succeed only for
+// known origins.
 app.use(
   cors({
-    origin: isProduction ? true : allowedOrigins,
+    origin: (origin, callback) => {
+      // allow requests with no origin (curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      console.warn(`Blocked CORS request from origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'), false);
+    },
     methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   })
