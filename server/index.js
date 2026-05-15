@@ -20,6 +20,17 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const app = express();
 
+// When running behind a proxy (Railway, Heroku, etc.) express must trust the proxy
+// so that `req.secure` is set correctly and secure cookies (secure: true) can be sent.
+if (isProduction) {
+  app.set("trust proxy", 1);
+}
+
+// Log a minimal environment summary (do NOT log sensitive values).
+console.log(`NODE_ENV=${process.env.NODE_ENV || 'undefined'}  isProduction=${isProduction}`);
+console.log(`JWT_SECRET set=${process.env.JWT_SECRET ? 'yes' : 'no'}`);
+console.log(`CORS_ORIGIN=${process.env.CORS_ORIGIN || allowedOrigins.join(',')}`);
+
 app.get("/", (req, res) => {
   res.status(200).json({ status: true, message: "Task Manager API is running." });
 });
